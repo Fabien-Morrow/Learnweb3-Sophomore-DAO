@@ -1,7 +1,6 @@
-import { useContractRead, use } from "wagmi";
+import { useContractRead } from "wagmi";
 import CryptoDevs from "../constants/CryptoDevs.json";
 import { CRYPTODEVS_GOERLI_ADDRESS } from "../constants";
-import { ethers } from "ethers";
 
 export function useCryptoDevs(address) {
   const { data } = useContractRead({

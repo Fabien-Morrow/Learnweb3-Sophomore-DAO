@@ -8,10 +8,11 @@ import "@rainbow-me/rainbowkit/styles.css";
 
 const { chains, provider } = configureChains(
   [chain.goerli],
-  [infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_RPC_KEY })]
+  [
+    infuraProvider({ apiKey: process.env.NEXT_PUBLIC_INFURA_RPC_KEY }),
+    alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_RPC_KEY }),
+  ]
 );
-
-// alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_GOERLI_RPC_KEY })
 
 const { connectors } = getDefaultWallets({
   appName: "mwe",
