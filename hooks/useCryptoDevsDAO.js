@@ -46,7 +46,6 @@ export function useCryptoDevsDAO() {
       return proposals;
     },
     select: (rawData) => {
-      console.log("je suis dans select");
       const rawProposals = rawData?.pages[0];
       const proposals = rawProposals.map((rawProposal) => {
         let date = new Date(0);
@@ -63,15 +62,12 @@ export function useCryptoDevsDAO() {
       return proposals;
     },
   });
-  console.log("isRefetching :", isRefetching);
 
   useContractEvent({
     ...contractConfig,
     eventName: "NewProposal",
-    listener(node, label, owner) {
-      refetch();
-    },
+    listener: () => refetch(),
   });
 
-  return { balanceOfDAO, numProposals, proposals, refetch };
+  return { balanceOfDAO, numProposals, proposals, isRefetching };
 }

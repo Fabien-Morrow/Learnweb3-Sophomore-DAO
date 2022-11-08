@@ -32,7 +32,6 @@ function ShowInfos({ address }) {
 
 function CreateProposal() {
   const [selectedNft, setSelectedNft] = useState();
-  const { refetch } = useCryptoDevsDAO();
   const { config } = usePrepareContractWrite({
     address: CRYPTODEVSDAO_GOERLI_ADDRESS,
     abi: CryptoDevsDAO.abi,
@@ -42,11 +41,7 @@ function CreateProposal() {
   });
   const { data, write } = useContractWrite(config);
   const { isLoading, status } = useWaitForTransaction({
-    confirmations: 2,
     hash: data?.hash,
-    onSuccess(data) {
-      refetch();
-    },
   });
   const nfts = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
   const wrappedNfts = nfts.map((nft) => (
@@ -125,13 +120,13 @@ function ShowProposal({ proposal, index }) {
 }
 
 function ViewProposals() {
-  const { proposals, is } = useCryptoDevsDAO();
+  const { proposals, isRefetching } = useCryptoDevsDAO();
   const wrappedProposals = proposals?.map((proposal, index) => {
     return (
       <ShowProposal key={proposal.deadline} proposal={proposal} index={index} />
     );
   });
-  // console.log(proposals);
+  // console.log(isRefetching);
   return (
     <div>
       <div>List of proposals :</div>
