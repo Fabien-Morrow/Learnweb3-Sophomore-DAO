@@ -80,7 +80,7 @@
 
 .button {
   composes: button-29;
-  margin: 50px;
+  margin: 10px;
 }
 
 .proposalContainer {

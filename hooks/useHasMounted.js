@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 
 export function useHasMounted() {
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => setHasMounted(true), []);
 
-  return useMemo(() => ({ hasMounted }), [hasMounted]);
+  return { hasMounted };
 }

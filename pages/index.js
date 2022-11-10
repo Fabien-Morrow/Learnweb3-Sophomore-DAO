@@ -16,6 +16,7 @@ import styles from "../styles/Home.module.css";
 
 import { useCryptoDevs } from "../hooks/useCryptoDevs";
 import { useCryptoDevsDAO } from "../hooks/useCryptoDevsDAO";
+import { useFakeNFTMarketplace } from "../hooks/useFakeNFTMarketplace";
 import { useHasMounted } from "../hooks/useHasMounted";
 
 function ShowInfos({ address }) {
@@ -81,26 +82,39 @@ function CreateProposal() {
 }
 
 function ShowProposal({ proposal, index }) {
+  // preparing vote yes
   const { config } = usePrepareContractWrite({
     address: CRYPTODEVSDAO_GOERLI_ADDRESS,
     abi: CryptoDevsDAO.abi,
     functionName: "voteOnProposal",
-    args: [0],
+    args: [index, 0],
   });
   const { data: dataYes, write: voteYes } = useContractWrite(config);
 
-  const { config2 } = usePrepareContractWrite({
+  // preparing vote no
+  const { config: config2 } = usePrepareContractWrite({
     address: CRYPTODEVSDAO_GOERLI_ADDRESS,
     abi: CryptoDevsDAO.abi,
     functionName: "voteOnProposal",
-    args: [1],
+    args: [index, 1],
   });
   const { data: dataNo, write: voteNo } = useContractWrite(config2);
 
-  const { isLoading, status } = useWaitForTransaction({
-    hash: dataYes?.hash || dataNo?.hash,
+  // preparing to execute proposal if deadline reached
+  const now = new Date();
+  const isDeadlineReached = Boolean(now > proposal.deadline);
+  const { config: config3 } = usePrepareContractWrite({
+    address: CRYPTODEVSDAO_GOERLI_ADDRESS,
+    abi: CryptoDevsDAO.abi,
+    functionName: "executeProposal",
+    args: [2],
+    enabled: isDeadlineReached,
   });
+  const { data: dataVote, write: executeProposal } = useContractWrite(config3);
 
+  const { status } = useWaitForTransaction({
+    hash: dataYes?.hash || dataNo?.hash || dataVote?.hash,
+  });
   return (
     <div key={proposal.deadline} className={styles.proposalContainer}>
       <div>PROPOSAL N°{index}</div>
@@ -108,25 +122,47 @@ function ShowProposal({ proposal, index }) {
       <div>You can vote until {proposal.deadline.toLocaleString()}</div>
       <div>I'm in : {proposal.yesVotes}</div>
       <div>No, thanks : {proposal.noVotes}</div>
-      <div>This proposal is {proposal.isExecuted ? "inactive" : "active"}</div>
-      {/* <button className={styles.button} onClick={() => voteYes()}>
+      <div>
+        This proposal{" "}
+        {proposal.isExecuted ? "has been executed" : "hasn't been executed"}
+      </div>
+      <button className={styles.button} onClick={() => voteYes()}>
         Vote Yes
       </button>
       <button className={styles.button} onClick={() => voteNo()}>
         Vote No
-      </button> */}
+      </button>
+      {isDeadlineReached && (
+        <button className={styles.button} onClick={() => executeProposal()}>
+          Execute Proposal
+        </button>
+      )}
+      <div> tx Status : {status}</div>
+      {(dataYes?.hash || dataNo?.hash || dataVote?.hash) && (
+        <div>
+          Check tx on{" "}
+          <a
+            target="_blank"
+            rel="noopener noreferrer"
+            href={`https://goerli.etherscan.io//tx/${
+              dataYes?.hash || dataNo?.hash || dataVote?.hash
+            }`}
+          >
+            Etherscan
+          </a>
+        </div>
+      )}
     </div>
   );
 }
 
 function ViewProposals() {
-  const { proposals, isRefetching } = useCryptoDevsDAO();
+  const { proposals } = useCryptoDevsDAO();
   const wrappedProposals = proposals?.map((proposal, index) => {
     return (
       <ShowProposal key={proposal.deadline} proposal={proposal} index={index} />
     );
   });
-  // console.log(isRefetching);
   return (
     <div>
       <div>List of proposals :</div>
